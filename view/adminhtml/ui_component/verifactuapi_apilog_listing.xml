@@ -112,6 +112,22 @@
             </settings>
         </column>
         
+        <column name="request_data" class="Orangecat\Verifactuapi\Ui\Component\Listing\Column\JsonData" sortOrder="75">
+            <settings>
+                <filter>text</filter>
+                <label translate="true">Request Data</label>
+                <bodyTmpl>ui/grid/cells/html</bodyTmpl>
+            </settings>
+        </column>
+        
+        <column name="response_data" class="Orangecat\Verifactuapi\Ui\Component\Listing\Column\JsonData" sortOrder="76">
+            <settings>
+                <filter>text</filter>
+                <label translate="true">Response Data</label>
+                <bodyTmpl>ui/grid/cells/html</bodyTmpl>
+            </settings>
+        </column>
+        
         <column name="error_message" sortOrder="80">
             <settings>
                 <filter>text</filter>

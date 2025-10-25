@@ -98,3 +98,5 @@
 "Log all API requests and responses to database","API eskaera eta erantzun guztiak datu-basean erregistratu"
 "Log Retention Days","Erregistroak Gordetzeko Egunak"
 "Number of days to keep API logs before automatic cleanup (default: 30)","API erregistroak garbiketa automatikoa egin aurretik gordetzeko egun kopurua (lehenetsia: 30)"
+"Request Data","Eskaera Datuak"
+"Response Data","Erantzun Datuak"

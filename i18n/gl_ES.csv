@@ -98,3 +98,5 @@
 "Log all API requests and responses to database","Rexistrar todas as peticións e respostas da API na base de datos"
 "Log Retention Days","Días de Retención de Rexistros"
 "Number of days to keep API logs before automatic cleanup (default: 30)","Número de días para manter os rexistros de API antes da limpeza automática (por defecto: 30)"
+"Request Data","Datos de Petición"
+"Response Data","Datos de Resposta"
