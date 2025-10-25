@@ -1,0 +1,169 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Orangecat Verifactuapi System Configuration
+ *
+ * @category  Orangecat
+ * @package   Orangecat_Verifactuapi
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <tab id="orangecat" translate="label" sortOrder="400" class="orangecat-tab">
+            <label>Orangecat</label>
+        </tab>
+        <section id="verifactuapi" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Verifactu API</label>
+            <tab>orangecat</tab>
+            <resource>Orangecat_Verifactuapi::config</resource>
+
+            <!-- General Settings -->
+            <group id="general" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>General Settings</label>
+                <field id="enabled" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable Module</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Enable or disable Verifactu integration</comment>
+                </field>
+                <!--<field id="environment" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Environment</label>
+                    <source_model>Orangecat\Verifactuapi\Model\Config\Source\Environment</source_model>
+                    <comment>Select Test or Production environment</comment>
+                </field>-->
+            </group>
+
+            <!-- API Credentials -->
+            <group id="api" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>API Credentials</label>
+                <field id="email" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>API Email</label>
+                    <comment>Your Verifactu API email</comment>
+                    <validate>required-entry validate-email</validate>
+                </field>
+                <field id="password" translate="label comment" type="obscure" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>API Password</label>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                    <comment>Your Verifactu API password</comment>
+                    <validate>required-entry</validate>
+                </field>
+            </group>
+
+            <!-- Emisor Settings -->
+            <group id="emisor" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Emisor Information</label>
+                <field id="nif" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>NIF</label>
+                    <comment>Company NIF/CIF</comment>
+                    <validate>required-entry</validate>
+                </field>
+                <field id="nombre" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Company Name</label>
+                    <comment>Legal company name</comment>
+                    <validate>required-entry</validate>
+                </field>
+                <field id="cp" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Postal Code</label>
+                    <comment>Company postal code</comment>
+                    <validate>required-entry validate-digits validate-length maximum-length-5 minimum-length-5</validate>
+                </field>
+            </group>
+
+            <!-- Retry Settings -->
+            <group id="retry" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Retry Settings</label>
+                <field id="max_attempts" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Maximum Retry Attempts</label>
+                    <comment>Number of retry attempts before marking as failed (default: 3)</comment>
+                    <validate>validate-digits validate-greater-than-zero</validate>
+                </field>
+                <field id="retry_interval" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Retry Interval (minutes)</label>
+                    <comment>Time between retry attempts in minutes (default: 30)</comment>
+                    <validate>validate-digits validate-greater-than-zero</validate>
+                </field>
+            </group>
+
+            <!-- Notification Settings -->
+            <group id="notification" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Notification Settings</label>
+                <field id="enabled" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable Email Notifications</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Send email notifications when retries are exhausted</comment>
+                </field>
+                <field id="email_recipients" translate="label comment" type="textarea" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Email Recipients</label>
+                    <comment>Comma-separated list of email addresses to notify</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="email_sender" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Email Sender</label>
+                    <source_model>Magento\Config\Model\Config\Source\Email\Identity</source_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+            </group>
+
+            <!-- Webhook Settings -->
+            <group id="webhook" translate="label" type="text" sortOrder="55" showInDefault="1" showInWebsite="0" showInStore="0">
+                <label>Webhook Configuration</label>
+                <comment><![CDATA[Configure webhook to receive automatic notifications from AEAT]]></comment>
+                <field id="current_url" translate="label comment" type="note" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Current Webhook URL</label>
+                    <frontend_model>Orangecat\Verifactuapi\Block\Adminhtml\System\Config\WebhookUrl</frontend_model>
+                    <comment>This URL should be registered in Verifactu to receive AEAT status notifications</comment>
+                </field>
+                <field id="register_button" translate="label" type="button" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Register Webhook</label>
+                    <frontend_model>Orangecat\Verifactuapi\Block\Adminhtml\System\Config\RegisterWebhookButton</frontend_model>
+                    <comment>Click to register or update the webhook URL in Verifactu API</comment>
+                </field>
+            </group>
+
+            <!-- QR Display Settings -->
+            <group id="qr_display" translate="label" type="text" sortOrder="56" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>QR Display Settings</label>
+                <comment><![CDATA[Configure messages shown to customers when viewing invoices]]></comment>
+                <field id="title" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>QR Section Title</label>
+                    <comment>Title shown above QR section (default: VERIFACTU - Factura verificable en la sede electrónica de la AEAT)</comment>
+                </field>
+                <field id="message_pending" translate="label comment" type="textarea" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Pending Message</label>
+                    <comment>Message shown when invoice is pending or in retry status</comment>
+                </field>
+                <field id="message_sent" translate="label comment" type="textarea" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Awaiting Confirmation Message</label>
+                    <comment>Message shown when invoice has been sent to Verifactu but not yet confirmed by AEAT</comment>
+                </field>
+                <field id="message_warning" translate="label comment" type="textarea" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Warning Message</label>
+                    <comment>Message shown alongside QR when invoice was confirmed with warnings</comment>
+                </field>
+                <field id="message_failed" translate="label comment" type="textarea" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Failed Message</label>
+                    <comment>Message shown when invoice validation failed</comment>
+                </field>
+            </group>
+
+            <!-- Debug Settings -->
+            <group id="debug" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Debug Settings</label>
+                <field id="log_enabled" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable Detailed Logging</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Log all API requests and responses to database</comment>
+                </field>
+                <field id="log_retention_days" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Log Retention Days</label>
+                    <comment>Number of days to keep API logs before automatic cleanup (default: 30)</comment>
+                    <validate>validate-digits validate-greater-than-zero</validate>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

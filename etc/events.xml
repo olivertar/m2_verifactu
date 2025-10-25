@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Orangecat Verifactuapi Events
+ *
+ * @category  Orangecat
+ * @package   Orangecat_Verifactuapi
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <event name="sales_order_invoice_save_after">
+        <observer name="orangecat_verifactuapi_invoice_save_after" 
+                  instance="Orangecat\Verifactuapi\Observer\InvoiceSaveAfter" />
+    </event>
+</config>

@@ -1,0 +1,55 @@
+{
+    "orangecat_verifactu_invoice": {
+        "column": {
+            "verifactu_invoice_id": true,
+            "invoice_id": true,
+            "status": true,
+            "qr_image": true,
+            "qr_url": true,
+            "identifier": true,
+            "attempts": true,
+            "error_message": true,
+            "last_attempt": true,
+            "created_at": true,
+            "updated_at": true,
+            "estado_aeat": true,
+            "codigo_error_aeat": true,
+            "descripcion_error_aeat": true
+        },
+        "index": {
+            "ORANGECAT_VERIFACTU_INVOICE_STATUS": true,
+            "ORANGECAT_VERIFACTU_INVOICE_ATTEMPTS": true,
+            "ORANGECAT_VERIFACTU_INVOICE_LAST_ATTEMPT": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "ORANGECAT_VERIFACTU_INVOICE_INVOICE_ID": true,
+            "ORANGECAT_VERIFACTU_INV_INVOICE_ID_SALES_INVOICE_ENTITY_ID": true,
+            "ORANGECAT_VERIFACTU_INVOICE_INVOICE_ID_SALES_INVOICE_ENTITY_ID": true
+        }
+    },
+    "orangecat_verifactu_api_log": {
+        "column": {
+            "log_id": true,
+            "invoice_id": true,
+            "action": true,
+            "request_data": true,
+            "response_data": true,
+            "status_code": true,
+            "status": true,
+            "error_message": true,
+            "created_at": true
+        },
+        "index": {
+            "ORANGECAT_VERIFACTU_API_LOG_INVOICE_ID": true,
+            "ORANGECAT_VERIFACTU_API_LOG_STATUS": true,
+            "ORANGECAT_VERIFACTU_API_LOG_ACTION": true,
+            "ORANGECAT_VERIFACTU_API_LOG_CREATED_AT": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "VERIFACTU_LOG_INVOICE_ID_SALES_INVOICE_ENTITY_ID": true,
+            "ORANGECAT_VERIFACTU_API_LOG_INVOICE_ID_SALES_INVOICE_ENTITY_ID": true
+        }
+    }
+}

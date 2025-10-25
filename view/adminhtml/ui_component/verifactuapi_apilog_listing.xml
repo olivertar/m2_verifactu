@@ -1,0 +1,130 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Orangecat Verifactuapi API Log Listing
+ *
+ * @category  Orangecat
+ * @package   Orangecat_Verifactuapi
+ */
+-->
+<listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="provider" xsi:type="string">verifactuapi_apilog_listing.verifactuapi_apilog_listing_data_source</item>
+        </item>
+    </argument>
+    
+    <settings>
+        <spinner>verifactuapi_apilog_columns</spinner>
+        <deps>
+            <dep>verifactuapi_apilog_listing.verifactuapi_apilog_listing_data_source</dep>
+        </deps>
+    </settings>
+    
+    <dataSource name="verifactuapi_apilog_listing_data_source" component="Magento_Ui/js/grid/provider">
+        <settings>
+            <storageConfig>
+                <param name="indexField" xsi:type="string">log_id</param>
+            </storageConfig>
+            <updateUrl path="mui/index/render"/>
+        </settings>
+        <aclResource>Orangecat_Verifactuapi::api_log</aclResource>
+        <dataProvider class="Orangecat\Verifactuapi\Ui\DataProvider\ApiLogDataProvider" name="verifactuapi_apilog_listing_data_source">
+            <settings>
+                <requestFieldName>log_id</requestFieldName>
+                <primaryFieldName>log_id</primaryFieldName>
+            </settings>
+        </dataProvider>
+    </dataSource>
+    
+    <listingToolbar name="listing_top">
+        <settings>
+            <sticky>true</sticky>
+        </settings>
+        <bookmark name="bookmarks"/>
+        <columnsControls name="columns_controls"/>
+        <filterSearch name="fulltext"/>
+        <filters name="listing_filters">
+            <settings>
+                <templates>
+                    <filters>
+                        <select>
+                            <param name="template" xsi:type="string">ui/grid/filters/elements/ui-select</param>
+                            <param name="component" xsi:type="string">Magento_Ui/js/form/element/ui-select</param>
+                        </select>
+                    </filters>
+                </templates>
+            </settings>
+        </filters>
+        <paging name="listing_paging"/>
+    </listingToolbar>
+    
+    <columns name="verifactuapi_apilog_columns">
+        <column name="log_id" sortOrder="10">
+            <settings>
+                <filter>textRange</filter>
+                <label translate="true">ID</label>
+            </settings>
+        </column>
+        
+        <column name="invoice_id" sortOrder="20">
+            <settings>
+                <filter>textRange</filter>
+                <label translate="true">Invoice ID</label>
+            </settings>
+        </column>
+        
+        <column name="increment_id" class="Orangecat\Verifactuapi\Ui\Component\Listing\Column\InvoiceLink" sortOrder="30">
+            <settings>
+                <filter>text</filter>
+                <label translate="true">Invoice #</label>
+                <bodyTmpl>ui/grid/cells/html</bodyTmpl>
+            </settings>
+        </column>
+        
+        <column name="grand_total" class="Magento\Sales\Ui\Component\Listing\Column\Price" sortOrder="40">
+            <settings>
+                <filter>textRange</filter>
+                <label translate="true">Grand Total</label>
+            </settings>
+        </column>
+        
+        <column name="action" sortOrder="50">
+            <settings>
+                <filter>text</filter>
+                <label translate="true">Action</label>
+            </settings>
+        </column>
+        
+        <column name="status" component="Magento_Ui/js/grid/columns/select" sortOrder="60">
+            <settings>
+                <filter>select</filter>
+                <options class="Orangecat\Verifactuapi\Model\Config\Source\LogStatus"/>
+                <dataType>select</dataType>
+                <label translate="true">Status</label>
+            </settings>
+        </column>
+        
+        <column name="status_code" sortOrder="70">
+            <settings>
+                <filter>text</filter>
+                <label translate="true">HTTP Status</label>
+            </settings>
+        </column>
+        
+        <column name="error_message" sortOrder="80">
+            <settings>
+                <filter>text</filter>
+                <label translate="true">Error Message</label>
+            </settings>
+        </column>
+        
+        <column name="created_at" class="Magento\Ui\Component\Listing\Columns\Date" component="Magento_Ui/js/grid/columns/date" sortOrder="90">
+            <settings>
+                <filter>dateRange</filter>
+                <dataType>date</dataType>
+                <label translate="true">Created At</label>
+            </settings>
+        </column>
+    </columns>
+</listing>

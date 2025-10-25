@@ -1,0 +1,73 @@
+<?php
+/**
+ * @var $block \Orangecat\Verifactuapi\Block\Adminhtml\System\Config\RegisterWebhookButton
+ */
+?>
+<div id="webhook_register_container">
+    <?= $block->getButtonHtml() ?>
+    <span id="webhook_register_message" style="margin-left:10px;font-weight:bold;"></span>
+</div>
+
+<script>
+require([
+    'jquery',
+    'Magento_Ui/js/modal/alert'
+], function($, alert) {
+    window.registerWebhook = function() {
+        var button = $('#register_webhook_button');
+        var messageEl = $('#webhook_register_message');
+        
+        // Disable button
+        button.prop('disabled', true).addClass('disabled');
+        messageEl.text('<?= $block->escapeJs(__('Processing...')) ?>').css('color', '#007bdb');
+        
+        $.ajax({
+            url: '<?= $block->escapeUrl($block->getAjaxUrl()) ?>',
+            type: 'POST',
+            dataType: 'json',
+            data: {
+                form_key: window.FORM_KEY
+            },
+            showLoader: true,
+            success: function(response) {
+                if (response.success) {
+                    messageEl.text('<?= $block->escapeJs(__('Webhook registered successfully!')) ?>').css('color', '#008000');
+                    
+                    alert({
+                        title: '<?= $block->escapeJs(__('Success')) ?>',
+                        content: response.message + '<br><br><strong><?= $block->escapeJs(__('Webhook URL:')) ?></strong><br>' + 
+                                 '<code style="background:#f5f5f5;padding:5px;display:block;margin-top:5px;">' + response.webhook_url + '</code>' +
+                                 (response.webhook_id ? '<br><strong><?= $block->escapeJs(__('Webhook ID:')) ?></strong> ' + response.webhook_id : '') +
+                                 (response.webhook_secret ? '<br><br><strong><?= $block->escapeJs(__('Secret Key:')) ?></strong><br>' + 
+                                  '<code style="background:#fff3cd;padding:5px;display:block;margin-top:5px;word-break:break-all;">' + response.webhook_secret + '</code>' +
+                                  '<em style="color:#856404;display:block;margin-top:5px;"><?= $block->escapeJs(__('Store this secret key securely.')) ?></em>' : '')
+                    });
+                    
+                    setTimeout(function() {
+                        messageEl.text('');
+                    }, 5000);
+                } else {
+                    messageEl.text('<?= $block->escapeJs(__('Error')) ?>').css('color', '#c00');
+                    
+                    alert({
+                        title: '<?= $block->escapeJs(__('Error')) ?>',
+                        content: response.message || '<?= $block->escapeJs(__('Failed to register webhook')) ?>'
+                    });
+                }
+            },
+            error: function() {
+                messageEl.text('<?= $block->escapeJs(__('Error')) ?>').css('color', '#c00');
+                
+                alert({
+                    title: '<?= $block->escapeJs(__('Error')) ?>',
+                    content: '<?= $block->escapeJs(__('Failed to register webhook. Please check your API credentials.')) ?>'
+                });
+            },
+            complete: function() {
+                // Re-enable button
+                button.prop('disabled', false).removeClass('disabled');
+            }
+        });
+    };
+});
+</script>

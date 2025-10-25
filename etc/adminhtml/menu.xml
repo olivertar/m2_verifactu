@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Orangecat Verifactuapi Adminhtml Menu
+ *
+ * @category  Orangecat
+ * @package   Orangecat_Verifactuapi
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add id="Orangecat_Verifactuapi::api_log" 
+             title="Verifactu API Logs" 
+             module="Orangecat_Verifactuapi" 
+             sortOrder="100" 
+             parent="Magento_Backend::system_tools" 
+             action="verifactuapi/apilog/index" 
+             resource="Orangecat_Verifactuapi::api_log"/>
+    </menu>
+</config>

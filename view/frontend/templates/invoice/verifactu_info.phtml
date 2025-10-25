@@ -1,0 +1,59 @@
+<?php
+/**
+ * @var $block \Orangecat\Verifactuapi\Block\Invoice\VerifactuInfo
+ */
+?>
+<?php if ($block->isEnabled()): ?>
+    <?php foreach ($block->getInvoices() as $_invoice): ?>
+        <?php if ($block->hasVerifactuData($_invoice)): ?>
+            <div class="block block-verifactu-info" style="margin-top: 30px; padding: 20px; border: 2px solid #e0e0e0; border-radius: 8px; background-color: #f9f9f9;">
+                <div class="block-title" style="margin-bottom: 15px;">
+                    <strong style="font-size: 16px; color: #333;"><?= $block->escapeHtml($block->getTitle()) ?></strong>
+                    <span style="color: #666; font-size: 14px; margin-left: 10px;">(<?= $block->escapeHtml(__('Invoice')) ?> #<?= $block->escapeHtml($_invoice->getIncrementId()) ?>)</span>
+                </div>
+
+                <div class="block-content">
+                    <?php if ($block->shouldShowQr($_invoice)): ?>
+                        <!-- Show QR Code and URL -->
+                        <div class="verifactu-qr" style="display: flex; align-items: flex-start; gap: 20px;">
+                            <?php if ($block->getQrImage($_invoice)): ?>
+                                <div class="qr-image" style="flex-shrink: 0;">
+                                    <img src="data:image/png;base64,<?= $block->escapeHtmlAttr($block->getQrImage($_invoice)) ?>"
+                                         alt="<?= $block->escapeHtmlAttr(__('QR Code')) ?>"
+                                         style="width: 200px; height: 200px; border: 1px solid #ccc;" />
+                                </div>
+                            <?php endif; ?>
+
+                            <div class="qr-info" style="flex-grow: 1;">
+                                <?php if ($block->getQrUrl($_invoice)): ?>
+                                    <p style="margin-bottom: 10px;">
+                                        <strong><?= $block->escapeHtml(__('Verification URL:')) ?></strong><br/>
+                                        <a href="<?= $block->escapeUrl($block->getQrUrl($_invoice)) ?>"
+                                           target="_blank"
+                                           style="color: #1979c3; text-decoration: underline; word-break: break-all;">
+                                            <?= $block->escapeHtml($block->getQrUrl($_invoice)) ?>
+                                        </a>
+                                    </p>
+                                <?php endif; ?>
+
+                                <?php if ($block->getMessage($_invoice)): ?>
+                                    <p style="color: #666; font-size: 14px; margin: 10px 0 0 0;">
+                                        <?= $block->escapeHtml($block->getMessage($_invoice)) ?>
+                                    </p>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    <?php elseif ($block->shouldShowMessage($_invoice)): ?>
+                        <!-- Show status message only -->
+                        <div class="verifactu-message" style="padding: 15px; background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 4px;">
+                            <p style="margin: 0; color: #856404; font-size: 14px;">
+                                <strong><?= $block->escapeHtml(__('Status:')) ?></strong>
+                                <?= $block->escapeHtml($block->getMessage($_invoice)) ?>
+                            </p>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        <?php endif; ?>
+    <?php endforeach; ?>
+<?php endif; ?>

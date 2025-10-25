@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Orangecat Verifactuapi Invoice Grid
+ *
+ * @category  Orangecat
+ * @package   Orangecat_Verifactuapi
+ */
+-->
+<listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    
+    <!-- Verifactu Status Column -->
+    <columns name="sales_order_invoice_columns">
+        <column name="verifactu_status" class="Orangecat\Verifactuapi\Ui\Component\Listing\Column\VerifactuStatus">
+            <settings>
+                <filter>select</filter>
+                <dataType>text</dataType>
+                <label translate="true">Verifactu Status</label>
+                <bodyTmpl>ui/grid/cells/html</bodyTmpl>
+            </settings>
+        </column>
+        
+        <!-- QR Column -->
+        <column name="verifactu_qr" class="Orangecat\Verifactuapi\Ui\Component\Listing\Column\QrCode">
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">QR Code</label>
+                <bodyTmpl>ui/grid/cells/html</bodyTmpl>
+            </settings>
+        </column>
+        
+        <!-- Error Column -->
+        <column name="verifactu_error" class="Orangecat\Verifactuapi\Ui\Component\Listing\Column\ErrorMessage">
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">Verifactu Error</label>
+                <bodyTmpl>ui/grid/cells/html</bodyTmpl>
+            </settings>
+        </column>
+        
+        <!-- Resend Action Column -->
+        <actionsColumn name="verifactu_actions" class="Orangecat\Verifactuapi\Ui\Component\Listing\Column\ResendAction">
+            <settings>
+                <indexField>entity_id</indexField>
+                <label translate="true">Verifactu Actions</label>
+            </settings>
+        </actionsColumn>
+    </columns>
+</listing>

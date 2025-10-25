@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Orangecat Verifactuapi API Log Index Layout
+ *
+ * @category  Orangecat
+ * @package   Orangecat_Verifactuapi
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="styles"/>
+    <body>
+        <referenceContainer name="content">
+            <uiComponent name="verifactuapi_apilog_listing"/>
+        </referenceContainer>
+    </body>
+</page>

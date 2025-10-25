@@ -1,0 +1,86 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Orangecat Verifactuapi Database Schema
+ *
+ * @category  Orangecat
+ * @package   Orangecat_Verifactuapi
+ */
+-->
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    
+    <!-- Create verifactu_invoice table -->
+    <table name="orangecat_verifactu_invoice" resource="default" engine="innodb" comment="Verifactu Invoice Data">
+        <column xsi:type="int" name="verifactu_invoice_id" unsigned="true" nullable="false" identity="true" comment="Verifactu Invoice ID"/>
+        <column xsi:type="int" name="invoice_id" unsigned="true" nullable="false" comment="Invoice ID"/>
+        <column xsi:type="varchar" name="status" nullable="false" length="32" default="pending" comment="Verifactu Status"/>
+        <column xsi:type="text" name="qr_image" nullable="true" comment="QR Code Image Base64"/>
+        <column xsi:type="varchar" name="qr_url" nullable="true" length="512" comment="QR URL"/>
+        <column xsi:type="varchar" name="identifier" nullable="true" length="255" comment="Verifactu Identifier"/>
+        <column xsi:type="int" name="attempts" unsigned="true" nullable="false" default="0" comment="Send Attempts"/>
+        <column xsi:type="text" name="error_message" nullable="true" comment="Last Error Message"/>
+        <column xsi:type="varchar" name="estado_aeat" nullable="true" length="64" comment="AEAT Status"/>
+        <column xsi:type="varchar" name="codigo_error_aeat" nullable="true" length="64" comment="AEAT Error Code"/>
+        <column xsi:type="text" name="descripcion_error_aeat" nullable="true" comment="AEAT Error Description"/>
+        <column xsi:type="timestamp" name="last_attempt" nullable="true" comment="Last Attempt Timestamp"/>
+        <column xsi:type="timestamp" name="created_at" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
+        <column xsi:type="timestamp" name="updated_at" nullable="false" default="CURRENT_TIMESTAMP" on_update="true" comment="Updated At"/>
+        
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="verifactu_invoice_id"/>
+        </constraint>
+        
+        <constraint xsi:type="unique" referenceId="ORANGECAT_VERIFACTU_INVOICE_INVOICE_ID">
+            <column name="invoice_id"/>
+        </constraint>
+        
+        <constraint xsi:type="foreign" referenceId="ORANGECAT_VERIFACTU_INV_INVOICE_ID_SALES_INVOICE_ENTITY_ID" 
+                    table="orangecat_verifactu_invoice" column="invoice_id" 
+                    referenceTable="sales_invoice" referenceColumn="entity_id" onDelete="CASCADE"/>
+        
+        <index referenceId="ORANGECAT_VERIFACTU_INVOICE_STATUS" indexType="btree">
+            <column name="status"/>
+        </index>
+        <index referenceId="ORANGECAT_VERIFACTU_INVOICE_ATTEMPTS" indexType="btree">
+            <column name="attempts"/>
+        </index>
+        <index referenceId="ORANGECAT_VERIFACTU_INVOICE_LAST_ATTEMPT" indexType="btree">
+            <column name="last_attempt"/>
+        </index>
+    </table>
+    
+    <!-- Create verifactu_api_log table -->
+    <table name="orangecat_verifactu_api_log" resource="default" engine="innodb" comment="Verifactu API Log">
+        <column xsi:type="int" name="log_id" unsigned="true" nullable="false" identity="true" comment="Log ID"/>
+        <column xsi:type="int" name="invoice_id" unsigned="true" nullable="true" comment="Invoice ID"/>
+        <column xsi:type="varchar" name="action" nullable="false" length="64" comment="API Action"/>
+        <column xsi:type="text" name="request_data" nullable="true" comment="Request Data (JSON)"/>
+        <column xsi:type="text" name="response_data" nullable="true" comment="Response Data (JSON)"/>
+        <column xsi:type="varchar" name="status_code" nullable="true" length="32" comment="HTTP Status Code"/>
+        <column xsi:type="varchar" name="status" nullable="false" length="32" comment="Status (success/error)"/>
+        <column xsi:type="text" name="error_message" nullable="true" comment="Error Message"/>
+        <column xsi:type="timestamp" name="created_at" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
+        
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="log_id"/>
+        </constraint>
+        
+        <constraint xsi:type="foreign" referenceId="VERIFACTU_LOG_INVOICE_ID_SALES_INVOICE_ENTITY_ID" 
+                    table="orangecat_verifactu_api_log" column="invoice_id" 
+                    referenceTable="sales_invoice" referenceColumn="entity_id" onDelete="SET NULL"/>
+        
+        <index referenceId="ORANGECAT_VERIFACTU_API_LOG_INVOICE_ID" indexType="btree">
+            <column name="invoice_id"/>
+        </index>
+        <index referenceId="ORANGECAT_VERIFACTU_API_LOG_STATUS" indexType="btree">
+            <column name="status"/>
+        </index>
+        <index referenceId="ORANGECAT_VERIFACTU_API_LOG_ACTION" indexType="btree">
+            <column name="action"/>
+        </index>
+        <index referenceId="ORANGECAT_VERIFACTU_API_LOG_CREATED_AT" indexType="btree">
+            <column name="created_at"/>
+        </index>
+    </table>
+</schema>

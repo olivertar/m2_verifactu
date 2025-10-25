@@ -1,0 +1,29 @@
+{
+    "name": "orangecat/module-verifactuapi",
+    "description": "Magento 2 integration with Verifactu API for Spanish electronic invoicing (AEAT)",
+    "type": "magento2-module",
+    "version": "1.0.0",
+    "license": "OSL-3.0",
+    "authors": [
+        {
+            "name": "Oliverio Gombert",
+            "email": "olivertar@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^7.4|^8.0|^8.1",
+        "magento/framework": "^102.0|^103.0",
+        "magento/module-sales": "^102.0|^103.0",
+        "magento/module-backend": "^102.0|^103.0"
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "Orangecat\\Verifactuapi\\": ""
+        }
+    }
+}

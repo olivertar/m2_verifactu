@@ -1,0 +1,462 @@
+<?php
+/**
+ * Orangecat Verifactuapi Service
+ *
+ * @category  Orangecat
+ * @package   Orangecat_Verifactuapi
+ */
+
+namespace Orangecat\Verifactuapi\Service;
+
+use Magento\Sales\Model\Order\Invoice;
+use Orangecat\Verifactuapi\Helper\Config;
+use Orangecat\Verifactuapi\Model\ApiLogFactory;
+use Psr\Log\LoggerInterface;
+use verifactuPHP\ClienteVerifactu;
+
+class VerifactuService
+{
+    /**
+     * @var Config
+     */
+    private $configHelper;
+
+    /**
+     * @var LoggerInterface
+     */
+    private $logger;
+
+    /**
+     * @var ApiLogFactory
+     */
+    private $apiLogFactory;
+
+    /**
+     * @var ClienteVerifactu|null
+     */
+    private $client;
+
+    /**
+     * @param Config $configHelper
+     * @param LoggerInterface $logger
+     * @param ApiLogFactory $apiLogFactory
+     */
+    public function __construct(
+        Config $configHelper,
+        LoggerInterface $logger,
+        ApiLogFactory $apiLogFactory
+    ) {
+        $this->configHelper = $configHelper;
+        $this->logger = $logger;
+        $this->apiLogFactory = $apiLogFactory;
+    }
+
+    /**
+     * Initialize and login to Verifactu API
+     *
+     * @return ClienteVerifactu
+     * @throws \Exception
+     */
+    private function getClient()
+    {
+        if ($this->client === null) {
+            $email = $this->configHelper->getApiEmail();
+            $password = $this->configHelper->getApiPassword();
+
+            if (empty($email) || empty($password)) {
+                throw new \Exception('Verifactu API credentials are not configured');
+            }
+
+            try {
+                $this->client = new ClienteVerifactu($email, $password);
+                $this->logger->info('Verifactu: Client initialized successfully');
+            } catch (\Exception $e) {
+                $this->logger->error('Verifactu: Failed to initialize client - ' . $e->getMessage());
+                throw new \Exception('Failed to connect to Verifactu API: ' . $e->getMessage());
+            }
+        }
+
+        return $this->client;
+    }
+
+    /**
+     * Send invoice to Verifactu
+     *
+     * @param Invoice $invoice
+     * @return array
+     * @throws \Exception
+     */
+    public function sendInvoice(Invoice $invoice)
+    {
+        $client = $this->getClient();
+        $order = $invoice->getOrder();
+        $billingAddress = $order->getBillingAddress();
+
+        try {
+            // Crear emisor
+            $emisorData = [
+                'nif' => $this->configHelper->getEmisorNif(),
+                'nombre' => $this->configHelper->getEmisorNombre()
+            ];
+            $emisor = $client->nuevoEmisor($emisorData);
+
+            // Crear destinatario (solo si tiene NIF válido)
+            $customerNif = $order->getCustomerTaxvat();
+            $destinatario = null;
+            
+            if ($customerNif && strlen(trim($customerNif)) > 5) {
+                $destinatarioData = [
+                    'nombreRazon' => $billingAddress->getFirstname() . ' ' . $billingAddress->getLastname(),
+                    'nif' => trim($customerNif)
+                ];
+                $destinatario = $client->nuevoDestinatario($destinatarioData);
+            }
+
+            // Agrupar items por tipo de IVA
+            $taxGroups = $this->groupItemsByTaxRate($invoice);
+            
+            // Añadir envío al grupo correspondiente si tiene IVA
+            $baseShipping = (float) $invoice->getBaseShippingAmount();
+            $baseShippingTax = (float) $invoice->getBaseShippingTaxAmount();
+            
+            if ($baseShipping > 0) {
+                $shippingTaxRate = $baseShipping > 0 && $baseShippingTax > 0
+                    ? round(($baseShippingTax / $baseShipping) * 100, 2)
+                    : 0;
+                
+                $shippingTaxRate = $this->getNearestValidTaxRate($shippingTaxRate);
+                
+                if (!isset($taxGroups[$shippingTaxRate])) {
+                    $taxGroups[$shippingTaxRate] = [
+                        'base' => 0,
+                        'tax' => 0
+                    ];
+                }
+                
+                $taxGroups[$shippingTaxRate]['base'] += $baseShipping;
+                $taxGroups[$shippingTaxRate]['tax'] += $baseShippingTax;
+            }
+            
+            // Crear un desglose por cada tipo de IVA
+            $desgloses = [];
+            $cuotaTotal = 0;
+            $baseImponibleTotal = 0;
+            
+            foreach ($taxGroups as $taxRate => $amounts) {
+                $baseImponible = round($amounts['base'], 2);
+                $cuotaRepercutida = round($baseImponible * $taxRate / 100, 2);
+                
+                $desgloseData = [
+                    'impuesto' => 1, // IVA
+                    'claveRegimen' => 1, // General
+                    'calificacionOperacion' => 1, // S1 - Sujeta
+                    'tipoImpositivo' => (float) $taxRate,
+                    'baseImponibleOImporteNoSujeto' => (float) $baseImponible,
+                    'cuotaRepercutida' => (float) $cuotaRepercutida
+                ];
+                
+                $desgloses[] = $client->nuevoDesglose($desgloseData);
+                
+                $cuotaTotal += $cuotaRepercutida;
+                $baseImponibleTotal += $baseImponible;
+            }
+            
+            // Totales
+            $cuotaTotal = round($cuotaTotal, 2);
+            $importeTotal = round($baseImponibleTotal + $cuotaTotal, 2);
+
+            // Preparar objetos
+            // Nota: La API solo acepta UN desglose por registro
+            // Si hay múltiples tipos de IVA, necesitamos sumarlos con un tipo promedio ponderado
+            if (count($desgloses) > 1) {
+                // Calcular tipo impositivo promedio ponderado
+                $tipoPromedio = $baseImponibleTotal > 0 ? ($cuotaTotal / $baseImponibleTotal) * 100 : 21;
+                $tipoPromedio = $this->getNearestValidTaxRate($tipoPromedio);
+                
+                // Recalcular cuota con el tipo promedio para que coincida con validación API
+                $cuotaRepercutida = round($baseImponibleTotal * $tipoPromedio / 100, 2);
+                
+                // Crear un único desglose combinado
+                $desgloseData = [
+                    'impuesto' => 1,
+                    'claveRegimen' => 1,
+                    'calificacionOperacion' => 1,
+                    'tipoImpositivo' => (float) $tipoPromedio,
+                    'baseImponibleOImporteNoSujeto' => (float) $baseImponibleTotal,
+                    'cuotaRepercutida' => (float) $cuotaRepercutida
+                ];
+                
+                $desgloseFinal = $client->nuevoDesglose($desgloseData);
+                
+                // Ajustar cuotaTotal para usar la calculada (puede diferir ligeramente)
+                $cuotaTotal = $cuotaRepercutida;
+                $importeTotal = round($baseImponibleTotal + $cuotaTotal, 2);
+            } else {
+                $desgloseFinal = $desgloses[0];
+            }
+            
+            $objetos = [
+                'emisor' => $emisor,
+                'desglose' => $desgloseFinal
+            ];
+            
+            // Añadir destinatario solo si existe
+            if ($destinatario) {
+                $objetos['destinatario'] = $destinatario;
+            }
+
+            // Asegurar que los valores no sean null (ya calculados arriba)
+            if ($cuotaTotal === null || $cuotaTotal === '') {
+                $cuotaTotal = 0.0;
+            }
+            if ($importeTotal === null || $importeTotal === '' || $importeTotal == 0) {
+                $importeTotal = $baseImponible;
+            }
+            
+            $dataRegistro = [
+                'numSerieFactura' => $invoice->getIncrementId(),
+                'fechaExpedicionFactura' => date('Y-m-d', strtotime($invoice->getCreatedAt())),
+                'refExterna' => $order->getIncrementId(),
+                'tipoFactura' => $destinatario ? 'F1' : 'F2', // F1=Normal, F2=Simplificada sin NIF
+                'descripcionOperacion' => 'Venta de productos/servicios',
+                'cuotaTotal' => (float) $cuotaTotal,
+                'importeTotal' => (float) $importeTotal
+            ];
+            
+            // Si es factura simplificada sin destinatario, añadir flag
+            if (!$destinatario) {
+                $dataRegistro['facturaSinIdentifDestinatarioArt61d'] = 'S';
+            }
+
+            // Log request
+            if ($this->configHelper->isLogEnabled()) {
+                $this->logApiCall($invoice->getId(), 'nuevo-registro-alta', array_merge($dataRegistro, ['objetos' => 'emisor+destinatario+desglose']), null, 'pending');
+            }
+
+            // Crear registro
+            $registroAlta = $client->nuevoRegistroAlta($objetos, $dataRegistro);
+            
+            // Enviar registro a la API
+            $client->altaRegistroAlta($registroAlta);
+            
+            // Obtener el registro creado para tener el QR
+            // Buscar por número de serie de factura
+            $registrosResponse = $client->listarRegistrosAlta();
+            
+            // Buscar nuestro registro en la respuesta
+            $registroCreado = null;
+            if (isset($registrosResponse['data']['items']) && is_array($registrosResponse['data']['items'])) {
+                foreach ($registrosResponse['data']['items'] as $item) {
+                    if (isset($item['NumSerieFactura']) && $item['NumSerieFactura'] === $invoice->getIncrementId()) {
+                        $registroCreado = $item;
+                        break;
+                    }
+                }
+            }
+
+            // Log success
+            if ($this->configHelper->isLogEnabled()) {
+                $this->logApiCall(
+                    $invoice->getId(),
+                    'alta-registro-facturacion',
+                    $dataRegistro,
+                    $registroCreado ?: ['success' => true],
+                    'success',
+                    '201'
+                );
+            }
+
+            // Extraer datos del registro creado
+            return [
+                'success' => true,
+                'data' => $registroCreado
+            ];
+
+        } catch (\Exception $e) {
+            $errorMsg = $e->getMessage();
+            if ($this->configHelper->isLogEnabled()) {
+                $this->logApiCall(
+                    $invoice->getId(),
+                    'nuevo-registro-alta',
+                    [],
+                    ['error' => $errorMsg],
+                    'error',
+                    null,
+                    $errorMsg
+                );
+            }
+
+            $this->logger->error('Verifactu: API call failed - ' . $errorMsg, [
+                'invoice_id' => $invoice->getId(),
+                'increment_id' => $invoice->getIncrementId()
+            ]);
+
+            throw $e;
+        }
+    }
+
+    /**
+     * Log API call to database
+     *
+     * @param int $invoiceId
+     * @param string $action
+     * @param array|null $requestData
+     * @param array|null $responseData
+     * @param string $status
+     * @param string|null $statusCode
+     * @param string|null $errorMessage
+     * @return void
+     */
+    private function logApiCall(
+        $invoiceId,
+        $action,
+        $requestData = null,
+        $responseData = null,
+        $status = 'pending',
+        $statusCode = null,
+        $errorMessage = null
+    ) {
+        try {
+            $apiLog = $this->apiLogFactory->create();
+            $apiLog->setData([
+                'invoice_id' => $invoiceId,
+                'action' => $action,
+                'request_data' => $requestData ? json_encode($requestData) : null,
+                'response_data' => $responseData ? json_encode($responseData) : null,
+                'status_code' => $statusCode,
+                'status' => $status,
+                'error_message' => $errorMessage
+            ]);
+            $apiLog->save();
+        } catch (\Exception $e) {
+            $this->logger->error('Failed to log API call: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Extract QR data from API response
+     *
+     * @param array $response
+     * @return array
+     */
+    public function extractQrData($response)
+    {
+        $qrData = [
+            'qr_image' => null,
+            'qr_url' => null,
+            'identifier' => null
+        ];
+
+        // Si viene directamente el item (desde listarRegistrosAlta)
+        if (isset($response['data']) && !isset($response['data']['items'])) {
+            $item = $response['data'];
+            $qrData['qr_image'] = $item['QrBase64'] ?? $item['qr_image'] ?? null;
+            $qrData['qr_url'] = $item['URLQR'] ?? $item['url_qr'] ?? null;
+            $qrData['identifier'] = $item['NumSerieFactura'] ?? null;
+        }
+        // Si viene en el array items
+        elseif (isset($response['data']['items']) && is_array($response['data']['items'])) {
+            $item = is_array($response['data']['items']) ? reset($response['data']['items']) : $response['data']['items'];
+            $qrData['qr_image'] = $item['QrBase64'] ?? $item['qr_image'] ?? null;
+            $qrData['qr_url'] = $item['URLQR'] ?? $item['url_qr'] ?? null;
+            $qrData['identifier'] = $item['NumSerieFactura'] ?? null;
+        }
+
+        return $qrData;
+    }
+
+    /**
+     * Get tax rate from order applied taxes
+     *
+     * @param \Magento\Sales\Model\Order $order
+     * @return float|null
+     */
+    private function getTaxRateFromOrder($order)
+    {
+        try {
+            // Obtener los detalles de impuestos aplicados
+            $appliedTaxes = $order->getAppliedTaxes();
+            
+            if (!empty($appliedTaxes)) {
+                // Tomar el primer tax rate aplicado
+                $firstTax = reset($appliedTaxes);
+                if (isset($firstTax['percent'])) {
+                    $rate = (float) $firstTax['percent'];
+                    // Redondear al válido más cercano
+                    return $this->getNearestValidTaxRate($rate);
+                }
+            }
+            
+            // Intentar desde los items de la orden
+            foreach ($order->getAllItems() as $item) {
+                $taxPercent = $item->getTaxPercent();
+                if ($taxPercent > 0) {
+                    return $this->getNearestValidTaxRate((float) $taxPercent);
+                }
+            }
+            
+        } catch (\Exception $e) {
+            $this->logger->warning('Could not get tax rate from order: ' . $e->getMessage());
+        }
+        
+        return null;
+    }
+
+    /**
+     * Get nearest valid tax rate for Spain
+     * Valid rates: 0, 2, 4, 5, 7.5, 10, 21
+     *
+     * @param float $calculatedRate
+     * @return float
+     */
+    private function getNearestValidTaxRate($calculatedRate)
+    {
+        $validRates = [0, 2, 4, 5, 7.5, 10, 21];
+        
+        $nearest = $validRates[0];
+        $minDiff = abs($calculatedRate - $nearest);
+        
+        foreach ($validRates as $rate) {
+            $diff = abs($calculatedRate - $rate);
+            if ($diff < $minDiff) {
+                $minDiff = $diff;
+                $nearest = $rate;
+            }
+        }
+        
+        return (float) $nearest;
+    }
+
+    /**
+     * Group invoice items by tax rate
+     *
+     * @param Invoice $invoice
+     * @return array
+     */
+    private function groupItemsByTaxRate(Invoice $invoice)
+    {
+        $taxGroups = [];
+        
+        foreach ($invoice->getAllItems() as $item) {
+            // Skip child items (bundled, configurable children)
+            if ($item->getOrderItem()->getParentItem()) {
+                continue;
+            }
+            
+            $taxPercent = (float) $item->getOrderItem()->getTaxPercent();
+            $taxRate = $this->getNearestValidTaxRate($taxPercent);
+            
+            if (!isset($taxGroups[$taxRate])) {
+                $taxGroups[$taxRate] = [
+                    'base' => 0,
+                    'tax' => 0
+                ];
+            }
+            
+            $taxGroups[$taxRate]['base'] += (float) $item->getBaseRowTotal();
+            $taxGroups[$taxRate]['tax'] += (float) $item->getBaseTaxAmount();
+        }
+        
+        return $taxGroups;
+    }
+}

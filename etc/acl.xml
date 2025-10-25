@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Orangecat Verifactuapi ACL
+ *
+ * @category  Orangecat
+ * @package   Orangecat_Verifactuapi
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Acl/etc/acl.xsd">
+    <acl>
+        <resources>
+            <resource id="Magento_Backend::admin">
+                <resource id="Magento_Backend::stores">
+                    <resource id="Magento_Backend::stores_settings">
+                        <resource id="Magento_Config::config">
+                            <resource id="Orangecat_Verifactuapi::config" title="Verifactu API Configuration" translate="title" />
+                        </resource>
+                    </resource>
+                </resource>
+                <resource id="Magento_Sales::sales">
+                    <resource id="Orangecat_Verifactuapi::invoice" title="Verifactu Invoice Management" translate="title">
+                        <resource id="Orangecat_Verifactuapi::resend" title="Resend to Verifactu" translate="title" />
+                    </resource>
+                </resource>
+                <resource id="Magento_Backend::system">
+                    <resource id="Magento_Backend::tools">
+                        <resource id="Orangecat_Verifactuapi::api_log" title="Verifactu API Logs" translate="title" />
+                    </resource>
+                </resource>
+            </resource>
+        </resources>
+    </acl>
+</config>

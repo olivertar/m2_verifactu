@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Orangecat Verifactuapi Frontend Routes
+ *
+ * @category  Orangecat
+ * @package   Orangecat_Verifactuapi
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:App/etc/routes.xsd">
+    <router id="standard">
+        <route id="verifactuapi" frontName="verifactuapi">
+            <module name="Orangecat_Verifactuapi" />
+        </route>
+    </router>
+</config>

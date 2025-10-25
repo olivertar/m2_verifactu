@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <preference for="Orangecat\Verifactuapi\Api\VerifactuInvoiceRepositoryInterface" type="Orangecat\Verifactuapi\Model\VerifactuInvoiceRepository" />
+    
+    <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
+        <plugin name="orangecat_verifactuapi_invoice_grid_collection" type="Orangecat\Verifactuapi\Plugin\InvoiceGridCollectionPlugin" sortOrder="10" />
+    </type>
+    
+    <type name="Magento\Sales\Model\Order\Pdf\Invoice">
+        <plugin name="orangecat_verifactuapi_invoice_pdf" type="Orangecat\Verifactuapi\Plugin\Sales\Model\Order\Pdf\InvoicePlugin" sortOrder="10" />
+    </type>
+    
+    <type name="Orangecat\Verifactuapi\Model\ResourceModel\ApiLog\Collection">
+        <plugin name="orangecat_verifactuapi_apilog_collection" type="Orangecat\Verifactuapi\Plugin\ApiLogCollectionPlugin" sortOrder="10" />
+    </type>
+    
+    <virtualType name="VerifactuApiLogGridDataProvider" type="Orangecat\Verifactuapi\Ui\DataProvider\ApiLogDataProvider">
+        <arguments>
+            <argument name="collection" xsi:type="object">Orangecat\Verifactuapi\Model\ResourceModel\ApiLog\Collection</argument>
+        </arguments>
+    </virtualType>
+</config>

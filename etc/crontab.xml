@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Orangecat Verifactuapi Crontab
+ *
+ * @category  Orangecat
+ * @package   Orangecat_Verifactuapi
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
+    <group id="default">
+        <job name="orangecat_verifactuapi_process_pending" instance="Orangecat\Verifactuapi\Cron\ProcessPendingInvoices" method="execute">
+            <schedule>*/5 * * * *</schedule>
+        </job>
+        <job name="orangecat_verifactuapi_clean_logs" instance="Orangecat\Verifactuapi\Cron\CleanOldLogs" method="execute">
+            <schedule>0 2 * * *</schedule><!-- Daily at 2 AM -->
+        </job>
+    </group>
+</config>

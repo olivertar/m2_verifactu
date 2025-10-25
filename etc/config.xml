@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Orangecat Verifactuapi Default Configuration
+ *
+ * @category  Orangecat
+ * @package   Orangecat_Verifactuapi
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <verifactuapi>
+            <general>
+                <enabled>0</enabled>
+                <environment>test</environment>
+            </general>
+            <retry>
+                <max_attempts>3</max_attempts>
+                <retry_interval>30</retry_interval>
+            </retry>
+            <notification>
+                <enabled>1</enabled>
+                <email_sender>general</email_sender>
+            </notification>
+            <debug>
+                <log_enabled>1</log_enabled>
+                <log_retention_days>30</log_retention_days>
+            </debug>
+            <qr_display>
+                <title><![CDATA[VERIFACTU - Factura verificable en la sede electrónica de la AEAT]]></title>
+                <message_pending><![CDATA[Esta factura está pendiente de ser enviada a AEAT...]]></message_pending>
+                <message_sent><![CDATA[Esta factura aún no ha sido confirmada por AEAT.]]></message_sent>
+                <message_warning><![CDATA[Esta factura aún no ha sido confirmada por AEAT con observaciones]]></message_warning>
+                <message_failed><![CDATA[Ha habido un error con la validación...]]></message_failed>
+            </qr_display>
+        </verifactuapi>
+    </default>
+</config>

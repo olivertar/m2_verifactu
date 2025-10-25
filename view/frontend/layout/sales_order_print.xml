@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Orangecat Verifactuapi Sales Order Print Layout
+ *
+ * @category  Orangecat
+ * @package   Orangecat_Verifactuapi
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceContainer name="content">
+            <block class="Orangecat\Verifactuapi\Block\Invoice\VerifactuInfo" 
+                   name="verifactu.invoice.info" 
+                   template="Orangecat_Verifactuapi::invoice/verifactu_info.phtml"
+                   after="-"/>
+        </referenceContainer>
+    </body>
+</page>
