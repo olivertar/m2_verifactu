@@ -22,24 +22,8 @@ class QrCode extends Column
     {
         if (isset($dataSource['data']['items'])) {
             foreach ($dataSource['data']['items'] as &$item) {
-                // Extract raw status value by stripping HTML if present
-                $status = $item['verifactu_status'] ?? null;
-                
-                // If status contains HTML, extract the raw value from it
-                if ($status && preg_match('/>([^<]+)<\/span>/', $status, $matches)) {
-                    // Map display labels back to raw values
-                    $labelMap = [
-                        'Pending' => 'pending',
-                        'Retry' => 'retry',
-                        'Sent to Verifactu' => 'sent',
-                        'Confirmed' => 'confirmed',
-                        'Warning' => 'warning',
-                        'Failed' => 'failed'
-                    ];
-                    $label = $matches[1];
-                    $status = $labelMap[$label] ?? strtolower($label);
-                }
-                
+                // Use raw status field (not processed by VerifactuStatus column)
+                $status = $item['verifactu_status_raw'] ?? null;
                 
                 // Only show QR if status is 'confirmed' or 'warning'
                 if (in_array($status, ['confirmed', 'warning'])) {

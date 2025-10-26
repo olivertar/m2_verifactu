@@ -21,12 +21,12 @@ class VerifactuInfo extends Template
      * @var Registry
      */
     private $registry;
-    
+
     /**
      * @var VerifactuInvoiceRepositoryInterface
      */
     private $verifactuInvoiceRepository;
-    
+
     /**
      * @var Config
      */
@@ -51,7 +51,7 @@ class VerifactuInfo extends Template
         $this->verifactuInvoiceRepository = $verifactuInvoiceRepository;
         $this->configHelper = $configHelper;
     }
-    
+
     /**
      * Get current order
      *
@@ -61,7 +61,7 @@ class VerifactuInfo extends Template
     {
         return $this->registry->registry('current_order');
     }
-    
+
     /**
      * Get invoices from current order
      *
@@ -72,7 +72,7 @@ class VerifactuInfo extends Template
         $order = $this->getOrder();
         return $order ? $order->getInvoiceCollection() : [];
     }
-    
+
     /**
      * Get Verifactu invoice record
      *
@@ -84,14 +84,14 @@ class VerifactuInfo extends Template
         if (!$invoice || !$invoice->getId()) {
             return null;
         }
-        
+
         try {
             return $this->verifactuInvoiceRepository->getByInvoiceId($invoice->getId());
         } catch (NoSuchEntityException $e) {
             return null;
         }
     }
-    
+
     /**
      * Check if module is enabled
      *
@@ -101,7 +101,7 @@ class VerifactuInfo extends Template
     {
         return $this->configHelper->isEnabled();
     }
-    
+
     /**
      * Get Verifactu status
      *
@@ -113,7 +113,7 @@ class VerifactuInfo extends Template
         $verifactu = $this->getVerifactuInvoice($invoice);
         return $verifactu ? $verifactu->getStatus() : null;
     }
-    
+
     /**
      * Get QR image (base64)
      *
@@ -125,7 +125,7 @@ class VerifactuInfo extends Template
         $verifactu = $this->getVerifactuInvoice($invoice);
         return $verifactu ? $verifactu->getQrImage() : null;
     }
-    
+
     /**
      * Get QR URL
      *
@@ -137,7 +137,7 @@ class VerifactuInfo extends Template
         $verifactu = $this->getVerifactuInvoice($invoice);
         return $verifactu ? $verifactu->getQrUrl() : null;
     }
-    
+
     /**
      * Get title
      *
@@ -147,7 +147,7 @@ class VerifactuInfo extends Template
     {
         return $this->configHelper->getQrTitle();
     }
-    
+
     /**
      * Get message based on status
      *
@@ -157,26 +157,26 @@ class VerifactuInfo extends Template
     public function getMessage($invoice)
     {
         $status = $this->getStatus($invoice);
-        
+
         switch ($status) {
             case 'pending':
             case 'retry':
                 return $this->configHelper->getQrMessagePending();
-            
+
             case 'sent':
                 return $this->configHelper->getQrMessageSent();
-            
+
             case 'warning':
                 return $this->configHelper->getQrMessageWarning();
-            
+
             case 'failed':
                 return $this->configHelper->getQrMessageFailed();
-            
+
             default:
                 return '';
         }
     }
-    
+
     /**
      * Check if should show QR
      *
@@ -188,7 +188,7 @@ class VerifactuInfo extends Template
         $status = $this->getStatus($invoice);
         return in_array($status, ['confirmed', 'warning']) && ($this->getQrImage($invoice) || $this->getQrUrl($invoice));
     }
-    
+
     /**
      * Check if should show message
      *
@@ -200,7 +200,7 @@ class VerifactuInfo extends Template
         $status = $this->getStatus($invoice);
         return in_array($status, ['pending', 'retry', 'sent', 'failed', 'warning']);
     }
-    
+
     /**
      * Check if has Verifactu data
      *

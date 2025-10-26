@@ -37,6 +37,7 @@ class InvoiceGridCollectionPlugin
                     'main_table.entity_id = verifactu.invoice_id',
                     [
                         'verifactu_status' => 'verifactu.status',
+                        'verifactu_status_raw' => 'verifactu.status',
                         'verifactu_identifier' => 'verifactu.identifier',
                         'verifactu_qr' => 'verifactu.qr_image',
                         'verifactu_url_qr' => 'verifactu.qr_url',
